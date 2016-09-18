@@ -2,17 +2,26 @@
 
 import requests
 
+from datetime import datetime
 from lxml import html
 
 
 def request_to_site():
-    r = requests.get('http://newsnn.ru/news/2016/9/10/')
+    date_now = datetime.strftime(datetime.now(), "%Y/%m/%d")
+    r = requests.get('http://newsnn.ru/news/{}/'.format(date_now))
     root = html.fromstring(r.text)
-    titles = root.xpath('.//img[@class="preview_picture"]/@title')
-    links = root.xpath('.//img[@class="preview_picture"]/@src')
+    xpath_dict = {
+        'titles': root.xpath('.//img[@class="preview_picture"]/@title'),
+        'links': root.xpath('.//img[@class="preview_picture"]/@src'),
+        'dates': root.xpath('.//div[@class="news-list"]/div/div/span[@class="news-date-time"]/span/text()')
+    }
 
-    for i in range(len(titles)):
-        news = {'subject': titles[i], 'img': 'http://newsnn.ru/' + links[i]}
+    for i in xrange(len(xpath_dict["titles"])):
+        news = {
+            'subject': xpath_dict["titles"][i],
+            'img': 'http://newsnn.ru/{}'.format(xpath_dict["links"][i]),
+            'date': '{} {}'.format(date_now, xpath_dict["dates"][i])
+        }
         print news
 
 request_to_site()
